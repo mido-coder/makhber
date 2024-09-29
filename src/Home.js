@@ -1,19 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
 const Home = ({ navigation }) => {
   const [labs, setLabs] = useState([]);
   const [region, setRegion] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
-  const [newLabName, setNewLabName] = useState('');
-  const [newLabDescription, setNewLabDescription] = useState('');
-  const [newLabTools, setNewLabTools] = useState('');
-  const [newLabHours, setNewLabHours] = useState('');
-  const [newLabCoordinates, setNewLabCoordinates] = useState({ latitude: '', longitude: '' });
 
   useEffect(() => {
     const getLocationAndFetchLabs = async () => {
@@ -89,39 +84,6 @@ const Home = ({ navigation }) => {
     navigation.navigate('LabDetails', { lab });
   };
 
-  const addNewLab = async () => {
-    const { latitude, longitude } = newLabCoordinates;
-    if (!newLabName || !latitude || !longitude || !newLabDescription || !newLabTools || !newLabHours) {
-      Alert.alert('Error', 'يرجى إدخال جميع البيانات.');
-      return;
-    }
-
-    const newLab = {
-      name: newLabName,
-      description: newLabDescription,
-      tools: newLabTools,
-      hours: newLabHours,
-      coordinates: {
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-      },
-    };
-
-    try {
-      await addDoc(collection(db, 'labs'), newLab);
-      Alert.alert('Success', 'تم إضافة المختبر الجديد.');
-      setLabs([...labs, newLab]);
-      setNewLabName('');
-      setNewLabDescription('');
-      setNewLabTools('');
-      setNewLabHours('');
-      setNewLabCoordinates({ latitude: '', longitude: '' });
-    } catch (error) {
-      console.error('Error adding new lab: ', error);
-      Alert.alert('Error', 'فشل في إضافة المختبر.');
-    }
-  };
-
   return (
     <View style={styles.container}>
       <ScrollView>
@@ -145,49 +107,9 @@ const Home = ({ navigation }) => {
           }
         })}
 
-        <View style={styles.newLabContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="اسم المختبر"
-            value={newLabName}
-            onChangeText={setNewLabName}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="وصف المختبر"
-            value={newLabDescription}
-            onChangeText={setNewLabDescription}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="الأدوات المستخدمة"
-            value={newLabTools}
-            onChangeText={setNewLabTools}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="ساعات العمل"
-            value={newLabHours}
-            onChangeText={setNewLabHours}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="خط العرض"
-            value={newLabCoordinates.latitude}
-            onChangeText={(text) => setNewLabCoordinates({ ...newLabCoordinates, latitude: text })}
-            keyboardType="numeric"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="خط الطول"
-            value={newLabCoordinates.longitude}
-            onChangeText={(text) => setNewLabCoordinates({ ...newLabCoordinates, longitude: text })}
-            keyboardType="numeric"
-          />
-          <TouchableOpacity style={styles.addButton} onPress={addNewLab}>
-            <Text style={styles.addButtonText}>إضافة مختبر</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddLab')}>
+          <Text style={styles.addButtonText}>إضافة مختبر جديد</Text>
+        </TouchableOpacity>
       </ScrollView>
       {region && (
         <MapView style={styles.map} region={region}>
@@ -273,19 +195,6 @@ const styles = StyleSheet.create({
   applyButtonText: {
     color: '#fff',
     textAlign: 'center',
-  },
-  newLabContainer: {
-    marginVertical: 20,
-    padding: 15,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    padding: 10,
-    marginVertical: 5,
   },
   addButton: {
     backgroundColor: '#28a745',
